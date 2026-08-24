@@ -19,8 +19,8 @@ function Wrapper({
   children,
 }: {
   label: string;
-  error?: string;
-  required?: boolean;
+  error?: string | undefined;
+  required?: boolean | undefined;
   children: ReactNode;
 }) {
   return (
@@ -43,7 +43,7 @@ export function TextField({
   error,
   className,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }) {
+}: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string | undefined }) {
   return (
     <Wrapper label={label} error={error} required={props.required}>
       <input {...props} className={cn(baseField, error && "border-crimson", className)} />
@@ -59,9 +59,9 @@ export function SelectField({
   ...props
 }: SelectHTMLAttributes<HTMLSelectElement> & {
   label: string;
-  error?: string;
+  error?: string | undefined;
   options: readonly string[];
-  placeholder?: string;
+  placeholder?: string | undefined;
 }) {
   return (
     <Wrapper label={label} error={error} required={props.required}>
@@ -81,7 +81,7 @@ export function TextAreaField({
   label,
   error,
   ...props
-}: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string }) {
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string | undefined }) {
   return (
     <Wrapper label={label} error={error} required={props.required}>
       <textarea rows={4} {...props} className={cn(baseField, "resize-none", error && "border-crimson")} />

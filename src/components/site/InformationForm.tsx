@@ -16,7 +16,7 @@ const EMPTY = {
 };
 
 type Values = typeof EMPTY;
-type Errors = Partial<Record<keyof Values, string>>;
+type Errors = { [K in keyof Values]?: string | undefined };
 
 function validate(v: Values): Errors {
   const e: Errors = {};

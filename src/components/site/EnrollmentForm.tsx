@@ -44,7 +44,7 @@ const EMPTY = {
 };
 
 type Values = typeof EMPTY;
-type Errors = Partial<Record<keyof Values, string>>;
+type Errors = { [K in keyof Values]?: string | undefined };
 
 const req = (v: string, msg = "Este campo es obligatorio.") => (v.trim() ? undefined : msg);
 
