@@ -5,6 +5,8 @@ import { Reveal } from "./Reveal";
 import { SelectField, SuccessDialog, TextAreaField, TextField } from "./FormControls";
 import type { InfoPreset } from "./forms.types";
 
+import { informacionService } from '@/services/informacionService';
+
 const EMPTY = {
   nombres: "",
   dni: "",
@@ -51,19 +53,42 @@ export function InformationForm({ preset }: { preset: InfoPreset }) {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const found = validate(values);
     setErrors(found);
+
     if (Object.keys(found).length > 0) return;
+
     setSending(true);
-    // Envío simulado (sin backend por ahora)
-    window.setTimeout(() => {
-      setSending(false);
+
+    try {
+      // Mapeaer todos los datos del frontend al formtato que espera el backend
+      const requestData = {
+        nombres_apellidos: values.nombres,
+        dni: values.dni,
+        celular: values.celular,
+        correo: values.correo,
+        nivel_educativo: values.nivel,
+        servicio_interes: values.servicio,
+        mensaje: values.mensaje,
+        canal_preferido: 'WhatsApp', // Valor por defecto según BD
+      };
+
+      // Enviar al backend real
+      await informacionService.crearSolicitud(requestData);
+
+      // Si todo sale bien
       setDone(true);
       setValues(EMPTY);
-    }, 700);
-  };
+
+    } catch (error: any) {
+      console.error('Error al enviar solicitud', error);
+      alert(error.message || 'Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.');
+    }  finally {
+      setSending(false);
+    }
+  }
 
   return (
     <section id="informacion" className="bg-background py-20 sm:py-24">

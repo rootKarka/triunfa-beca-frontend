@@ -4,6 +4,9 @@ import { NIVELES, SERVICIOS } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
 import { SelectField, SuccessDialog, TextField } from "./FormControls";
 
+import { matriculaService } from "@/services/matriculaService";
+import { replaceEqualDeep } from "@tanstack/react-query";
+
 const GRADOS = [
   "3 años",
   "4 años",
@@ -109,20 +112,49 @@ export function EnrollmentForm() {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const found = validate(values);
     setErrors(found);
-    if (Object.keys(found).length > 0) {
-      document.querySelector("#matricula")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
+    
+    if (Object.keys(found).length > 0) return;
+
     setSending(true);
-    window.setTimeout(() => {
-      setSending(false);
+
+    try {
+      // Mapear todos los datos del frontend al  formato que espera el backend
+      const requestData = {
+        est_nombres: values.nombres,
+        est_apellido_paterno: values.apPaterno,
+        est_apellido_materno: values.apMaterno,
+        est_dni: values.dni,
+        est_fecha_nacimiento: values.nacimiento,
+        est_celular: values.celular,
+        est_correo: values.celular,
+        nivel_educativo: values.nivel,
+        grado_modalidad: values.grado,
+        servicio_contratar: values.servicio,
+        turno_preferido: values.turno,
+        apod_nombre_completo: values.apoNombre,
+        apod_dni: values.apoDni,
+        apod_celular: values.apoCelular,
+        apod_correo: values.apoCorreo
+      };
+
+      // Enviar al backend real
+      await matriculaService.crearSolicitud(requestData);
+
+      // Si todo sale bien
       setDone(true);
       setValues(EMPTY);
-    }, 700);
+
+    } catch (error: any) {
+      console.error('Error al enviar solicitud', error);
+      alert(error.message || 'Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.');
+    }  finally {
+      setSending(false);
+    }
+
   };
 
   return (
