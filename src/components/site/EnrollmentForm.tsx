@@ -4,6 +4,8 @@ import { NIVELES, SERVICIOS } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
 import { SelectField, SuccessDialog, TextField } from "./FormControls";
 
+const API_URL = "http://localhost:3000/api/v1/solicitudes/matricula";
+
 const GRADOS = [
   "3 años",
   "4 años",
@@ -109,7 +111,7 @@ export function EnrollmentForm() {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const found = validate(values);
     setErrors(found);
@@ -117,12 +119,43 @@ export function EnrollmentForm() {
       document.querySelector("#matricula")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
+
     setSending(true);
-    window.setTimeout(() => {
-      setSending(false);
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          est_nombres: values.nombres,
+          est_apellido_paterno: values.apPaterno,
+          est_apellido_materno: values.apMaterno,
+          est_dni: values.dni,
+          est_fecha_nacimiento: values.nacimiento,
+          est_celular: values.celular,
+          est_correo: values.correo,
+          nivel_educativo: values.nivel,
+          grado_modalidad: values.grado,
+          servicio_contratar: values.servicio,
+          turno_preferido: values.turno,
+          apod_nombre_completo: values.apoNombre,
+          apod_dni: values.apoDni,
+          apod_celular: values.apoCelular,
+          apod_correo: values.apoCorreo,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al enviar la solicitud de matrícula");
+      }
+
       setDone(true);
       setValues(EMPTY);
-    }, 700);
+    } catch (error) {
+      console.error("Error al enviar el formulario de matrícula:", error);
+      alert("No se pudo enviar tu solicitud de matrícula. Intenta de nuevo en unos minutos.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
