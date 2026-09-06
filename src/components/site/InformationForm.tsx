@@ -5,6 +5,9 @@ import { Reveal } from "./Reveal";
 import { SelectField, SuccessDialog, TextAreaField, TextField } from "./FormControls";
 import type { InfoPreset } from "./forms.types";
 
+//agregamos nuevo (para no escribir URL completo varias veces en codigo)
+const API_URL = "http://localhost:3000/api/v1/solicitudes/informacion";
+
 const EMPTY = {
   nombres: "",
   dni: "",
@@ -51,19 +54,46 @@ export function InformationForm({ preset }: { preset: InfoPreset }) {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  //cambiamos simulacion //con real 
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const found = validate(values);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
+
     setSending(true);
-    // Envío simulado (sin backend por ahora)
-    window.setTimeout(() => {
-      setSending(false);
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombres_apellidos: values.nombres,
+          dni: values.dni,
+          celular: values.celular,
+          correo: values.correo,
+          nivel_educativo: values.nivel,
+          servicio_interes: values.servicio,
+          mensaje: values.mensaje,
+          canal_preferido: "WhatsApp",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al enviar la solicitud");
+      }
+
       setDone(true);
       setValues(EMPTY);
-    }, 700);
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
+      alert("No se pudo enviar tu solicitud. Intenta de nuevo en unos minutos.");
+    } finally {
+      setSending(false);
+    }
   };
+
+  //jefes todo hasta qui cambiamos para q funcione
 
   return (
     <section id="informacion" className="bg-background py-20 sm:py-24">
