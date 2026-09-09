@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/v1/solicitudes';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export interface SolicitudInfoData {
   nombres_apellidos: string;
