@@ -1,31 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ClipboardCheck, GraduationCap, UserRound, Users } from "lucide-react";
-import { NIVELES, SERVICIOS } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
 import { SelectField, SuccessDialog, TextField } from "./FormControls";
 
 const API_URL = "http://localhost:3000/api/v1/solicitudes/matricula";
-
-const GRADOS = [
-  "3 años",
-  "4 años",
-  "5 años",
-  "1° grado",
-  "2° grado",
-  "3° grado",
-  "4° grado",
-  "5° grado",
-  "6° grado",
-  "1° secundaria",
-  "2° secundaria",
-  "3° secundaria",
-  "4° secundaria",
-  "5° secundaria",
-  "Preuniversitario - Ciclo regular",
-  "Preuniversitario - Beca 18",
-];
-
-const TURNOS = ["Turno Mañana (8:30 AM - 12:00 PM)", "Turno Tarde (3:00 PM - 6:00 PM)"];
+const CATALOGOS_URL = "http://localhost:3000/api/v1/catalogos";
 
 const EMPTY = {
   nombres: "",
@@ -46,12 +25,14 @@ const EMPTY = {
 };
 
 type Values = typeof EMPTY;
-type Errors = { [K in keyof Values]?: string | undefined };
+type Errors = { [K in keyof Values]?: string };
+type Opcion = { id: string; nombre: string; orden: number };
 
 const req = (v: string, msg = "Este campo es obligatorio.") => (v.trim() ? undefined : msg);
 
 function validate(v: Values): Errors {
   const e: Errors = {};
+
   e.nombres = req(v.nombres);
   e.apPaterno = req(v.apPaterno);
   e.apMaterno = req(v.apMaterno);
@@ -66,9 +47,11 @@ function validate(v: Values): Errors {
   e.apoNombre = req(v.apoNombre);
   e.apoDni = /^\d{8}$/.test(v.apoDni.trim()) ? undefined : "El DNI debe tener 8 dígitos.";
   e.apoCelular = /^\d{9}$/.test(v.apoCelular.trim()) ? undefined : "El celular debe tener 9 dígitos.";
-  e.apoCorreo = !v.apoCorreo.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.apoCorreo.trim())
-    ? undefined
-    : "Ingresa un correo válido.";
+  e.apoCorreo =
+    !v.apoCorreo.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.apoCorreo.trim())
+      ? undefined
+      : "Ingresa un correo válido.";
+
   (Object.keys(e) as (keyof Values)[]).forEach((k) => e[k] === undefined && delete e[k]);
   return e;
 }
@@ -95,6 +78,7 @@ function Block({
           <h3 className="text-lg text-navy">{title}</h3>
         </div>
       </div>
+
       <div className="grid gap-4 sm:grid-cols-2">{children}</div>
     </div>
   );
@@ -106,6 +90,33 @@ export function EnrollmentForm() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
+  const [niveles, setNiveles] = useState<string[]>([]);
+  const [grados, setGrados] = useState<string[]>([]);
+  const [servicios, setServicios] = useState<string[]>([]);
+  const [turnos, setTurnos] = useState<string[]>([]);
+
+  useEffect(() => {
+    const cargarCatalogos = async () => {
+      try {
+        const [n, g, s, t] = await Promise.all([
+          fetch(`${CATALOGOS_URL}/NIVEL_EDUCATIVO`).then((r) => r.json()),
+          fetch(`${CATALOGOS_URL}/GRADO_MODALIDAD`).then((r) => r.json()),
+          fetch(`${CATALOGOS_URL}/SERVICIO`).then((r) => r.json()),
+          fetch(`${CATALOGOS_URL}/TURNO`).then((r) => r.json()),
+        ]);
+
+        setNiveles(n.data.map((x: Opcion) => x.nombre));
+        setGrados(g.data.map((x: Opcion) => x.nombre));
+        setServicios(s.data.map((x: Opcion) => x.nombre));
+        setTurnos(t.data.map((x: Opcion) => x.nombre));
+      } catch (error) {
+        console.error("Error cargando catálogos:", error);
+      }
+    };
+
+    cargarCatalogos();
+  }, []);
+
   const set = (key: keyof Values) => (e: { target: { value: string } }) => {
     setValues((v) => ({ ...v, [key]: e.target.value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
@@ -113,14 +124,20 @@ export function EnrollmentForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const found = validate(values);
     setErrors(found);
+
     if (Object.keys(found).length > 0) {
-      document.querySelector("#matricula")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector("#matricula")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
       return;
     }
 
     setSending(true);
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
@@ -176,6 +193,7 @@ export function EnrollmentForm() {
               <TextField label="DNI" required inputMode="numeric" maxLength={8} value={values.dni} onChange={set("dni")} error={errors.dni} placeholder="12345678" />
               <TextField label="Fecha de nacimiento" required type="date" value={values.nacimiento} onChange={set("nacimiento")} error={errors.nacimiento} />
               <TextField label="Celular" required inputMode="numeric" maxLength={9} value={values.celular} onChange={set("celular")} error={errors.celular} placeholder="9XXXXXXXX" />
+
               <div className="sm:col-span-2">
                 <TextField label="Correo electrónico" required type="email" maxLength={255} value={values.correo} onChange={set("correo")} error={errors.correo} placeholder="estudiante@gmail.com" />
               </div>
@@ -184,10 +202,10 @@ export function EnrollmentForm() {
 
           <Reveal delay={80}>
             <Block icon={GraduationCap} step="2" title="Información académica">
-              <SelectField label="Nivel educativo" required options={NIVELES} value={values.nivel} onChange={set("nivel")} error={errors.nivel} />
-              <SelectField label="Grado / modalidad" required options={GRADOS} value={values.grado} onChange={set("grado")} error={errors.grado} />
-              <SelectField label="Servicio que desea contratar" required options={SERVICIOS} value={values.servicio} onChange={set("servicio")} error={errors.servicio} />
-              <SelectField label="Turno preferido" required options={TURNOS} value={values.turno} onChange={set("turno")} error={errors.turno} />
+              <SelectField label="Nivel educativo" required options={niveles} value={values.nivel} onChange={set("nivel")} error={errors.nivel} />
+              <SelectField label="Grado / modalidad" required options={grados} value={values.grado} onChange={set("grado")} error={errors.grado} />
+              <SelectField label="Servicio que desea contratar" required options={servicios} value={values.servicio} onChange={set("servicio")} error={errors.servicio} />
+              <SelectField label="Turno preferido" required options={turnos} value={values.turno} onChange={set("turno")} error={errors.turno} />
             </Block>
           </Reveal>
 
@@ -196,8 +214,10 @@ export function EnrollmentForm() {
               <div className="sm:col-span-2">
                 <TextField label="Nombre completo" required maxLength={120} value={values.apoNombre} onChange={set("apoNombre")} error={errors.apoNombre} />
               </div>
+
               <TextField label="DNI" required inputMode="numeric" maxLength={8} value={values.apoDni} onChange={set("apoDni")} error={errors.apoDni} placeholder="12345678" />
               <TextField label="Celular" required inputMode="numeric" maxLength={9} value={values.apoCelular} onChange={set("apoCelular")} error={errors.apoCelular} placeholder="9XXXXXXXX" />
+
               <div className="sm:col-span-2">
                 <TextField label="Correo electrónico" type="email" maxLength={255} value={values.apoCorreo} onChange={set("apoCorreo")} error={errors.apoCorreo} placeholder="apoderado@gmail.com" />
               </div>
