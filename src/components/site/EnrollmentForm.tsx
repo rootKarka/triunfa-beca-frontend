@@ -3,9 +3,7 @@ import { ClipboardCheck, GraduationCap, UserRound, Users } from "lucide-react";
 import { NIVELES, SERVICIOS } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
 import { SelectField, SuccessDialog, TextField } from "./FormControls";
-
 import { matriculaService } from "@/services/matriculaService";
-import { replaceEqualDeep } from "@tanstack/react-query";
 
 const GRADOS = [
   "3 años",
@@ -116,13 +114,12 @@ export function EnrollmentForm() {
     e.preventDefault();
     const found = validate(values);
     setErrors(found);
-    
+
     if (Object.keys(found).length > 0) return;
 
     setSending(true);
 
     try {
-      // Mapear todos los datos del frontend al  formato que espera el backend
       const requestData = {
         est_nombres: values.nombres,
         est_apellido_paterno: values.apPaterno,
@@ -130,7 +127,7 @@ export function EnrollmentForm() {
         est_dni: values.dni,
         est_fecha_nacimiento: values.nacimiento,
         est_celular: values.celular,
-        est_correo: values.celular,
+        est_correo: values.correo,
         nivel_educativo: values.nivel,
         grado_modalidad: values.grado,
         servicio_contratar: values.servicio,
@@ -138,23 +135,19 @@ export function EnrollmentForm() {
         apod_nombre_completo: values.apoNombre,
         apod_dni: values.apoDni,
         apod_celular: values.apoCelular,
-        apod_correo: values.apoCorreo
+        apod_correo: values.apoCorreo,
       };
 
-      // Enviar al backend real
       await matriculaService.crearSolicitud(requestData);
 
-      // Si todo sale bien
       setDone(true);
       setValues(EMPTY);
-
     } catch (error: any) {
-      console.error('Error al enviar solicitud', error);
-      alert(error.message || 'Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.');
-    }  finally {
+      console.error("Error al enviar solicitud", error);
+      alert(error.message || "Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.");
+    } finally {
       setSending(false);
     }
-
   };
 
   return (
