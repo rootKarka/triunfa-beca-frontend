@@ -1,5 +1,5 @@
 import { Mail, MapPin, Phone } from "lucide-react";
-import logo from "@/assets/logo-emblema.jpeg";
+import logo from "@/assets/logo-emblema1.png";
 import { SITE, scrollToSection } from "@/config/site";
 import { useNavegacion } from "@/hooks/useNavegacion";
 

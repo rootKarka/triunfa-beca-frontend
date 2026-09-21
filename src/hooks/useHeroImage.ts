@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchImagesBySection, type AdminImage } from "@/lib/api/images-api";
 
+const REFRESH_INTERVAL_MS = 3000;
+
 export function useHeroImage() {
   const [imagenes, setImagenes] = useState<AdminImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,9 +37,11 @@ export function useHeroImage() {
     }
 
     loadHeroImages();
+    const interval = setInterval(loadHeroImages, REFRESH_INTERVAL_MS);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 

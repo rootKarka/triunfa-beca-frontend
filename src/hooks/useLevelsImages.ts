@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchImagesBySection, type AdminImage } from "@/lib/api/images-api";
 
+const REFRESH_INTERVAL_MS = 3000;
+
 export function useLevelsImages() {
   const [imagenes, setImagenes] = useState<AdminImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,9 +27,11 @@ export function useLevelsImages() {
     }
 
     loadLevelsImages();
+    const interval = setInterval(loadLevelsImages, REFRESH_INTERVAL_MS);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 

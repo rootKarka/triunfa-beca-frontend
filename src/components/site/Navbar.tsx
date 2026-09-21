@@ -32,10 +32,13 @@ export function Navbar() {
       <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <button
           onClick={() => go("#inicio")}
-          className="flex items-center gap-2 transition-transform hover:scale-[1.02]"
+          className="flex items-center gap-3 transition-transform hover:scale-[1.02]"
           aria-label="Ir al inicio"
         >
           <img src={logo} alt="Logo de Triunfa Beca" width={889} height={466} className="h-11 w-auto" />
+          <span className="text-base font-black uppercase tracking-tight text-navy sm:text-lg">
+            Triunfa Beca
+          </span>
         </button>
 
         <ul className="hidden items-center gap-1 lg:flex">

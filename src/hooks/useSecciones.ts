@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const REFRESH_INTERVAL_MS = 5000; // cada 5 segundos
 
 export type SeccionApi = {
   id: string;
@@ -37,8 +38,14 @@ export function useSecciones() {
     }
 
     loadSecciones();
+
+    // Vuelve a consultar cada cierto tiempo, para que los cambios
+    // hechos en el panel admin aparezcan solos, sin recargar la página.
+    const interval = setInterval(loadSecciones, REFRESH_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 

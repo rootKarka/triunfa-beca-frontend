@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NAV_LINKS } from "@/config/site";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const REFRESH_INTERVAL_MS = 5000; // cada 5 segundos
 
 export type NavItemApi = {
   id: string;
@@ -33,15 +34,15 @@ export function useNavegacion() {
     }
 
     loadNavegacion();
+
+    const interval = setInterval(loadNavegacion, REFRESH_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 
-  // Mientras no haya terminado de cargar, usamos el respaldo fijo NAV_LINKS
-  // (para no mostrar un menú vacío mientras llega la respuesta).
-  // Una vez que ya cargó, usamos exactamente lo que diga la API,
-  // aunque venga vacío (si el admin apagó todos los elementos).
   const links = loaded
     ? items
         .filter((i) => !i.padre_id)
