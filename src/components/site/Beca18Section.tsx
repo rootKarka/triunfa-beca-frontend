@@ -1,5 +1,6 @@
 import { Award, CheckCircle2, FileText, Users } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { useSecciones } from "@/hooks/useSecciones";
 
 const PUNTOS = [
   "Orientación sobre requisitos y etapas del concurso",
@@ -8,6 +9,11 @@ const PUNTOS = [
 ];
 
 export function Beca18Section({ onRequest }: { onRequest: () => void }) {
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("PROGRAMA ESPECIAL");
+
+  if (isHidden("PROGRAMA ESPECIAL")) return null;
+
   return (
     <section id="beca18" className="relative overflow-hidden bg-navy py-20 sm:py-24">
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -20,14 +26,13 @@ export function Beca18Section({ onRequest }: { onRequest: () => void }) {
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:px-8">
         <Reveal>
           <span className="inline-block rounded-full bg-crimson px-4 py-1.5 text-xs font-extrabold uppercase tracking-widest text-crimson-foreground">
-            Programa especial
+            {seccion?.etiqueta ?? "Programa especial"}
           </span>
           <h2 className="mt-4 text-3xl text-navy-foreground sm:text-4xl lg:text-5xl">
-            ¿Quieres postular a <span className="text-gold">Beca 18</span>?
+            {seccion?.titulo ?? "¿Quieres postular a Beca 18?"}
           </h2>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-navy-foreground/80">
-            Te acompañamos en el proceso y te brindamos orientación para que puedas conocer mejor los
-            requisitos y oportunidades disponibles.
+            {seccion?.descripcion ?? "Te acompañamos en el proceso y te brindamos orientación para que puedas conocer mejor los requisitos y oportunidades disponibles."}
           </p>
 
           <ul className="mt-6 space-y-3">
@@ -43,7 +48,7 @@ export function Beca18Section({ onRequest }: { onRequest: () => void }) {
             onClick={onRequest}
             className="mt-8 rounded-full bg-gold-gradient px-8 py-3.5 text-base font-extrabold text-gold-foreground shadow-gold transition-transform hover:-translate-y-0.5"
           >
-            Quiero asesoramiento
+            {seccion?.texto_boton ?? "Quiero asesoramiento"}
           </button>
         </Reveal>
 

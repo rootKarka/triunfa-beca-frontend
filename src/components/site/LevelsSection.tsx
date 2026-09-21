@@ -1,6 +1,9 @@
 import { Blocks, GraduationCap, Library, PencilRuler } from "lucide-react";
 import { Reveal, SectionHeading } from "./Reveal";
 import type { NivelValue } from "./forms.types";
+import { useLevelsImages } from "@/hooks/useLevelsImages";
+import { buildImageUrl } from "@/lib/api/images-api";
+import { useSecciones } from "@/hooks/useSecciones";
 
 const LEVELS: { icon: typeof Blocks; name: NivelValue; text: string; accent: string }[] = [
   {
@@ -30,33 +33,59 @@ const LEVELS: { icon: typeof Blocks; name: NivelValue; text: string; accent: str
 ];
 
 export function LevelsSection({ onRequest }: { onRequest: (nivel: NivelValue) => void }) {
+  const { imagenes } = useLevelsImages();
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("NIVELES ACADÉMICOS");
+
+  if (isHidden("NIVELES ACADÉMICOS")) return null;
+
   return (
     <section id="niveles" className="bg-secondary/60 py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Niveles académicos"
-          title="Encuentra el programa ideal para ti"
-          subtitle="Reforzamiento en todos los niveles, con turnos de mañana y tarde de lunes a viernes."
+          eyebrow={seccion?.etiqueta ?? "Niveles académicos"}
+          title={seccion?.titulo ?? "Encuentra el programa ideal para ti"}
+          subtitle={seccion?.descripcion ?? "Reforzamiento en todos los niveles, con turnos de mañana y tarde de lunes a viernes."}
         />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {LEVELS.map((level, i) => (
-            <Reveal key={level.name} delay={i * 90} className="h-full">
-              <article className="flex h-full flex-col rounded-3xl border border-border/60 bg-card p-7 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:shadow-card">
-                <span className={`inline-flex size-16 items-center justify-center rounded-2xl ${level.accent}`}>
-                  <level.icon className="size-8" />
-                </span>
-                <h3 className="mt-5 text-2xl text-navy">{level.name}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{level.text}</p>
-                <button
-                  onClick={() => onRequest(level.name)}
-                  className="mt-6 rounded-full border-2 border-brand px-5 py-2.5 text-sm font-extrabold text-brand transition-colors hover:bg-brand hover:text-primary-foreground"
-                >
-                  Solicitar información
-                </button>
-              </article>
-            </Reveal>
-          ))}
+          {LEVELS.map((level, i) => {
+            const imagenApi = imagenes.find(
+              (img) => img.texto_alt?.toLowerCase() === level.name.toLowerCase()
+            );
+
+            return (
+              <Reveal key={level.name} delay={i * 90} className="h-full">
+                <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:shadow-card">
+                  {imagenApi ? (
+                    <div className="relative h-40 w-full overflow-hidden">
+                      <img
+                        src={buildImageUrl(imagenApi.url)}
+                        alt={imagenApi.texto_alt ?? level.name}
+                        className="size-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-7 pb-0">
+                      <span className={`inline-flex size-16 items-center justify-center rounded-2xl ${level.accent}`}>
+                        <level.icon className="size-8" />
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-1 flex-col p-7 pt-5">
+                    <h3 className="text-2xl text-navy">{level.name}</h3>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{level.text}</p>
+                    <button
+                      onClick={() => onRequest(level.name)}
+                      className="mt-6 rounded-full border-2 border-brand px-5 py-2.5 text-sm font-extrabold text-brand transition-colors hover:bg-brand hover:text-primary-foreground"
+                    >
+                      Solicitar información
+                    </button>
+                  </div>
+                </article>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>

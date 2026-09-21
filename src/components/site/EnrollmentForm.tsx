@@ -4,6 +4,7 @@ import { NIVELES, SERVICIOS } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
 import { SelectField, SuccessDialog, TextField } from "./FormControls";
 import { matriculaService } from "@/services/matriculaService";
+import { useSecciones } from "@/hooks/useSecciones";
 
 const GRADOS = [
   "3 años",
@@ -104,6 +105,8 @@ export function EnrollmentForm() {
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("PRE-MATRÍCULA");
 
   const set = (key: keyof Values) => (e: { target: { value: string } }) => {
     setValues((v) => ({ ...v, [key]: e.target.value }));
@@ -150,13 +153,15 @@ export function EnrollmentForm() {
     }
   };
 
+  if (isHidden("PRE-MATRÍCULA")) return null;
+
   return (
     <section id="matricula" className="bg-secondary/60 py-20 sm:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Pre-matrícula"
-          title="Inicia tu matrícula"
-          subtitle="Registra tus datos y nuestro equipo te contactará para confirmar la información y darte los siguientes pasos. No se realiza ningún pago en línea."
+          eyebrow={seccion?.etiqueta ?? "Pre-matrícula"}
+          title={seccion?.titulo ?? "Inicia tu matrícula"}
+          subtitle={seccion?.descripcion ?? "Registra tus datos y nuestro equipo te contactará para confirmar la información y darte los siguientes pasos. No se realiza ningún pago en línea."}
         />
 
         <form onSubmit={onSubmit} noValidate className="mt-12 space-y-6">
@@ -202,7 +207,7 @@ export function EnrollmentForm() {
             className="flex w-full items-center justify-center gap-2 rounded-full bg-gold-gradient px-6 py-4 text-base font-extrabold text-gold-foreground shadow-gold transition-transform hover:-translate-y-0.5 disabled:opacity-70"
           >
             <ClipboardCheck className="size-5" />
-            {sending ? "Enviando..." : "Enviar solicitud de matrícula"}
+            {sending ? "Enviando..." : seccion?.texto_boton ?? "Enviar solicitud de matrícula"}
           </button>
         </form>
       </div>

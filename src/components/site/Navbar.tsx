@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import logo from "@/assets/logo-triunfa-beca.png";
-import { NAV_LINKS, scrollToSection } from "@/config/site";
+import logo from "@/assets/logo-emblema1.png";
+import { scrollToSection } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { useNavegacion } from "@/hooks/useNavegacion";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { links } = useNavegacion();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -37,7 +39,7 @@ export function Navbar() {
         </button>
 
         <ul className="hidden items-center gap-1 lg:flex">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <li key={link.href}>
               <button
                 onClick={() => go(link.href)}
@@ -74,7 +76,7 @@ export function Navbar() {
         )}
       >
         <ul className="space-y-1 px-4 py-4">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <li key={link.href}>
               <button
                 onClick={() => go(link.href)}

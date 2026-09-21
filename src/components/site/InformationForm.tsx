@@ -4,8 +4,8 @@ import { NIVELES, SERVICIOS, SITE } from "@/config/site";
 import { Reveal } from "./Reveal";
 import { SelectField, SuccessDialog, TextAreaField, TextField } from "./FormControls";
 import type { InfoPreset } from "./forms.types";
-
 import { informacionService } from '@/services/informacionService';
+import { useSecciones } from "@/hooks/useSecciones";
 
 const EMPTY = {
   nombres: "",
@@ -38,6 +38,8 @@ export function InformationForm({ preset }: { preset: InfoPreset }) {
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("INFORMES");
 
   useEffect(() => {
     if (!preset.token) return;
@@ -63,7 +65,6 @@ export function InformationForm({ preset }: { preset: InfoPreset }) {
     setSending(true);
 
     try {
-      // Mapeaer todos los datos del frontend al formtato que espera el backend
       const requestData = {
         nombres_apellidos: values.nombres,
         dni: values.dni,
@@ -72,34 +73,34 @@ export function InformationForm({ preset }: { preset: InfoPreset }) {
         nivel_educativo: values.nivel,
         servicio_interes: values.servicio,
         mensaje: values.mensaje,
-        canal_preferido: 'WhatsApp', // Valor por defecto según BD
+        canal_preferido: 'WhatsApp',
       };
 
-      // Enviar al backend real
       await informacionService.crearSolicitud(requestData);
 
-      // Si todo sale bien
       setDone(true);
       setValues(EMPTY);
 
     } catch (error: any) {
       console.error('Error al enviar solicitud', error);
       alert(error.message || 'Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.');
-    }  finally {
+    } finally {
       setSending(false);
     }
   }
+
+  if (isHidden("INFORMES")) return null;
 
   return (
     <section id="informacion" className="bg-background py-20 sm:py-24">
       <div className="mx-auto grid max-w-6xl items-start gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.35fr] lg:px-8">
         <Reveal>
           <span className="inline-block rounded-full bg-accent px-4 py-1 text-xs font-bold uppercase tracking-widest text-brand">
-            Informes
+            {seccion?.etiqueta ?? "Informes"}
           </span>
-          <h2 className="mt-4 text-3xl text-navy sm:text-4xl">¿Quieres más información?</h2>
+          <h2 className="mt-4 text-3xl text-navy sm:text-4xl">{seccion?.titulo ?? "¿Quieres más información?"}</h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Déjanos tus datos y nos pondremos en contacto contigo.
+            {seccion?.descripcion ?? "Déjanos tus datos y nos pondremos en contacto contigo."}
           </p>
 
           <ul className="mt-8 space-y-4">
@@ -211,7 +212,7 @@ export function InformationForm({ preset }: { preset: InfoPreset }) {
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-crimson px-6 py-3.5 text-base font-extrabold text-crimson-foreground shadow-card transition-transform hover:-translate-y-0.5 disabled:opacity-70"
             >
               <Send className="size-5" />
-              {sending ? "Enviando..." : "Solicitar información"}
+              {sending ? "Enviando..." : seccion?.texto_boton ?? "Solicitar información"}
             </button>
             <p className="mt-3 text-center text-xs text-muted-foreground">
               Al enviar aceptas que Triunfa Beca se comunique contigo para brindarte información.

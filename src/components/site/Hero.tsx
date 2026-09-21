@@ -5,9 +5,14 @@ import heroGrads from "@/assets/hero-student-3.jpg";
 import { useHeroImage } from "@/hooks/useHeroImage";
 import { buildImageUrl } from "@/lib/api/images-api";
 import { SITE, scrollToSection } from "@/config/site";
+import { useSecciones } from "@/hooks/useSecciones"; // Nuevo hook para manejar la visibilidad de secciones
 
 export function Hero() {
   const { imagenPrincipal, imagenInferior, imagenSuperior } = useHeroImage();
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("ACADEMIA TRIUNFA BECA");
+
+  if (isHidden("ACADEMIA TRIUNFA BECA")) return null;
 
   // Imágenes de la API según su orden; si no existen, usa las imágenes locales
   const srcPrincipal = imagenPrincipal ? buildImageUrl(imagenPrincipal.url) : heroMain;
@@ -22,6 +27,7 @@ export function Hero() {
 
   const altSuperior =
     imagenSuperior?.texto_alt ?? "Jóvenes celebrando su ingreso a la universidad";
+
 
   return (
     <section
@@ -57,14 +63,11 @@ export function Hero() {
           </span>
 
           <h1 className="mt-5 text-4xl leading-[1.1] text-navy-foreground sm:text-5xl lg:text-6xl">
-            Tu esfuerzo de hoy{" "}
-            <span className="relative inline-block text-gold">
-              construye tu futuro.
-            </span>
+            {seccion?.titulo ?? "Tu esfuerzo de hoy construye tu futuro."}
           </h1>
 
           <p className="mt-4 text-lg font-semibold text-navy-foreground/95 sm:text-xl">
-            Prepárate, aprende y alcanza tus metas con Triunfa Beca.
+            {seccion?.descripcion ?? "Prepárate, aprende y alcanza tus metas con Triunfa Beca."}
           </p>
 
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-navy-foreground/75 sm:text-base lg:mx-0">
