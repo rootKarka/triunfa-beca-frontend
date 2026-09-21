@@ -130,7 +130,7 @@ export function EnrollmentForm() {
         est_dni: values.dni,
         est_fecha_nacimiento: values.nacimiento,
         est_celular: values.celular,
-        est_correo: values.celular,
+        est_correo: values.correo,
         nivel_educativo: values.nivel,
         grado_modalidad: values.grado,
         servicio_contratar: values.servicio,
