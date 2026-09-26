@@ -13,7 +13,7 @@ export function useLevelsImages() {
     async function loadLevelsImages() {
       try {
         setLoading(true);
-        const data = await fetchImagesBySection("niveles");
+        const data = await fetchImagesBySection("Niveles");
         if (!cancelled) {
           setImagenes(data);
         }

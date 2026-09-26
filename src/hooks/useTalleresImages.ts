@@ -13,7 +13,7 @@ export function useTalleresImages() {
     async function loadTalleresImages() {
       try {
         setLoading(true);
-        const data = await fetchImagesBySection("talleres");
+        const data = await fetchImagesBySection("Talleres");
         if (!cancelled) {
           setImagenes(data);
         }

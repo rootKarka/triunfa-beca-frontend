@@ -13,7 +13,7 @@ export function useAboutImages() {
     async function loadAboutImages() {
       try {
         setLoading(true);
-        const data = await fetchImagesBySection("nosotros");
+        const data = await fetchImagesBySection("Nosotros");
         if (!cancelled) {
           setImagenes(data);
         }

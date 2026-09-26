@@ -16,7 +16,7 @@ export function useHeroImage() {
         setLoading(true);
         setError(null);
 
-        const data = await fetchImagesBySection("hero");
+        const data = await fetchImagesBySection("Portada");
 
         if (!cancelled) {
           setImagenes(data);
@@ -26,7 +26,7 @@ export function useHeroImage() {
           setError(
             err instanceof Error
               ? err.message
-              : "Error al cargar las imágenes Hero"
+              : "Error al cargar las imágenes de Portada"
           );
         }
       } finally {
