@@ -1,39 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { fetchImagesBySection, type AdminImage } from "@/lib/api/images-api";
-
-const REFRESH_INTERVAL_MS = 3000;
+import { useLiveEvents } from "./useLiveEvents";
 
 export function useAboutImages() {
   const [imagenes, setImagenes] = useState<AdminImage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadAboutImages() {
-      try {
-        setLoading(true);
-        const data = await fetchImagesBySection("Nosotros");
-        if (!cancelled) {
-          setImagenes(data);
-        }
-      } catch (err) {
-        console.error("Error al cargar las imágenes de nosotros:", err);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+  const cargar = useCallback(async () => {
+    try {
+      const data = await fetchImagesBySection("nosotros");
+      setImagenes(data);
+    } catch (err) {
+      console.error("Error al cargar las imágenes de nosotros:", err);
+    } finally {
+      setLoading(false);
     }
-
-    loadAboutImages();
-    const interval = setInterval(loadAboutImages, REFRESH_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
   }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  useLiveEvents("imagenes", cargar);
 
   return { imagenes, loading };
 }

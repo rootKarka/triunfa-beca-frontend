@@ -17,11 +17,11 @@ export function WhatsAppButton() {
       <span className="absolute inset-0 rounded-full bg-whatsapp/20 animate-pulse" />
 
       {/* Logo de WhatsApp */}
-      <div className="relative z-10 size-full overflow-hidden rounded-full">
+      <div className="relative z-10 flex size-full items-center justify-center overflow-hidden rounded-full bg-white p-1.5">
         <img
           src={whatsappLogo}
           alt="WhatsApp"
-          className="size-full object-cover"
+          className="size-full object-contain"
         />
       </div>
     </a>

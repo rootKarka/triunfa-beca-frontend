@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useLiveEvents } from "./useLiveEvents";
 
 type Codigo =
   | "INFO_NIVEL_EDUCATIVO"
@@ -28,41 +29,33 @@ export function useCatalogosForm() {
   const [matriculaServicios, setMatriculaServicios] = useState<string[]>([]);
   const [matriculaTurnos, setMatriculaTurnos] = useState<string[]>([]);
 
-  useEffect(() => {
-    let activo = true;
+  const cargar = useCallback(async () => {
+    try {
+      const [iniv, iserv, mniv, mgrado, mserv, mturno] = await Promise.all([
+        obtener("INFO_NIVEL_EDUCATIVO"),
+        obtener("INFO_SERVICIO_INTERES"),
+        obtener("MATRICULA_NIVEL_EDUCATIVO"),
+        obtener("MATRICULA_GRADO_MODALIDAD"),
+        obtener("MATRICULA_SERVICIO"),
+        obtener("MATRICULA_TURNO"),
+      ]);
 
-    const cargar = async () => {
-      try {
-        const [iniv, iserv, mniv, mgrado, mserv, mturno] = await Promise.all([
-          obtener("INFO_NIVEL_EDUCATIVO"),
-          obtener("INFO_SERVICIO_INTERES"),
-          obtener("MATRICULA_NIVEL_EDUCATIVO"),
-          obtener("MATRICULA_GRADO_MODALIDAD"),
-          obtener("MATRICULA_SERVICIO"),
-          obtener("MATRICULA_TURNO"),
-        ]);
-
-        if (!activo) return;
-
-        setInfoNiveles(iniv);
-        setInfoServicios(iserv);
-        setMatriculaNiveles(mniv);
-        setMatriculaGrados(mgrado);
-        setMatriculaServicios(mserv);
-        setMatriculaTurnos(mturno);
-      } catch (error) {
-        console.error("Error al cargar catálogos:", error);
-      }
-    };
-
-    cargar();
-    const interval = setInterval(cargar, 3000);
-
-    return () => {
-      activo = false;
-      clearInterval(interval);
-    };
+      setInfoNiveles(iniv);
+      setInfoServicios(iserv);
+      setMatriculaNiveles(mniv);
+      setMatriculaGrados(mgrado);
+      setMatriculaServicios(mserv);
+      setMatriculaTurnos(mturno);
+    } catch (error) {
+      console.error("Error al cargar catálogos:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  useLiveEvents("catalogos", cargar);
 
   return {
     infoNiveles,

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useLiveEvents } from "./useLiveEvents";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-const REFRESH_INTERVAL_MS = 5000; // cada 5 segundos
 
 export type SeccionApi = {
   id: string;
@@ -17,37 +17,24 @@ export function useSecciones() {
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSecciones() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/public/secciones`);
-        const json = await response.json();
-        if (!cancelled) {
-          setSecciones(json.data ?? []);
-        }
-      } catch (err) {
-        console.error("Error al cargar las secciones:", err);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-          setLoaded(true);
-        }
-      }
+  const cargar = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/public/secciones`);
+      const json = await response.json();
+      setSecciones(json.data ?? []);
+    } catch (err) {
+      console.error("Error al cargar las secciones:", err);
+    } finally {
+      setLoading(false);
+      setLoaded(true);
     }
-
-    loadSecciones();
-
-    // Vuelve a consultar cada cierto tiempo, para que los cambios
-    // hechos en el panel admin aparezcan solos, sin recargar la página.
-    const interval = setInterval(loadSecciones, REFRESH_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
   }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  useLiveEvents("secciones", cargar);
 
   const getSeccion = (etiqueta: string) =>
     secciones.find((s) => s.etiqueta.toLowerCase() === etiqueta.toLowerCase());
