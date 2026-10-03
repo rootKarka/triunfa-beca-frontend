@@ -30,10 +30,9 @@ export function WorkshopsSection() {
 
         <div className="mt-12 flex flex-wrap justify-center gap-6">
           {TALLERES.map((t, i) => {
-            const imagenApi = imagenes.find((img) => {
-              const nombre = (img.grupo ?? img.texto_alt ?? "").toLowerCase();
-              return nombre === t.name.toLowerCase();
-            });
+            const imagenApi = imagenes.find(
+              (img) => img.grupo?.trim().toLowerCase() === t.name.toLowerCase()
+            );
             const src = imagenApi ? buildImageUrl(imagenApi.url) : t.img;
 
             return (
