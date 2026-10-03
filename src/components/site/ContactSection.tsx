@@ -1,15 +1,21 @@
 import { Mail, MapPin, Navigation, Phone } from "lucide-react";
 import { SITE, whatsappLink } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
+import { useSecciones } from "@/hooks/useSecciones";
 
 export function ContactSection() {
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("CONTACTO");
+
+  if (isHidden("CONTACTO")) return null;
+
   return (
     <section id="contacto" className="bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Contacto"
-          title="Estamos para ayudarte"
-          subtitle="Visítanos o escríbenos: con gusto resolvemos todas tus dudas."
+          eyebrow={seccion?.etiqueta ?? "Contacto"}
+          title={seccion?.titulo ?? "Estamos para ayudarte"}
+          subtitle={seccion?.descripcion ?? "Visítanos o escríbenos: con gusto resolvemos todas tus dudas."}
         />
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_1.2fr]">

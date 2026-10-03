@@ -2,19 +2,56 @@ import { Atom, BookOpen, GraduationCap, PenTool, Sigma, Sparkles } from "lucide-
 import heroMain from "@/assets/hero-students.jpg";
 import heroKid from "@/assets/hero-student-2.jpg";
 import heroGrads from "@/assets/hero-student-3.jpg";
+import { useHeroImage } from "@/hooks/useHeroImage";
+import { buildImageUrl } from "@/lib/api/images-api";
 import { SITE, scrollToSection } from "@/config/site";
+import { useSecciones } from "@/hooks/useSecciones"; // Nuevo hook para manejar la visibilidad de secciones
 
 export function Hero() {
+  const { imagenPrincipal, imagenInferior, imagenSuperior } = useHeroImage();
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("ACADEMIA TRIUNFA BECA");
+
+  if (isHidden("ACADEMIA TRIUNFA BECA")) return null;
+
+  // Imágenes de la API según su orden; si no existen, usa las imágenes locales
+  const srcPrincipal = imagenPrincipal ? buildImageUrl(imagenPrincipal.url) : heroMain;
+  const srcInferior = imagenInferior ? buildImageUrl(imagenInferior.url) : heroKid;
+  const srcSuperior = imagenSuperior ? buildImageUrl(imagenSuperior.url) : heroGrads;
+
+  const altPrincipal =
+    imagenPrincipal?.texto_alt ?? "Estudiantes de secundaria sonriendo con sus cuadernos";
+
+  const altInferior =
+    imagenInferior?.texto_alt ?? "Niña estudiando con sus libros";
+
+  const altSuperior =
+    imagenSuperior?.texto_alt ?? "Jóvenes celebrando su ingreso a la universidad";
+
+
   return (
-    <section id="inicio" className="relative overflow-hidden bg-hero-gradient pt-28 pb-20 sm:pt-32 lg:pt-36 lg:pb-28">
+    <section
+      id="inicio"
+      className="relative overflow-hidden bg-hero-gradient pt-28 pb-20 sm:pt-32 lg:pt-36 lg:pb-28"
+    >
       {/* Elementos gráficos educativos sutiles */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden text-navy-foreground/15">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 overflow-hidden text-navy-foreground/15"
+      >
         <Sigma className="animate-float absolute left-6 top-32 size-16" />
         <Atom className="animate-float absolute right-10 top-24 size-20 [animation-delay:1.5s]" />
         <BookOpen className="animate-float absolute bottom-16 left-1/4 size-14 [animation-delay:.8s]" />
         <PenTool className="animate-float absolute bottom-28 right-1/3 size-12 [animation-delay:2.2s]" />
-        <span className="absolute left-1/3 top-16 font-display text-3xl">a² + b² = c²</span>
-        <span className="absolute bottom-10 right-8 font-display text-2xl">π · r²</span>
+
+        <span className="absolute left-1/3 top-16 font-display text-3xl">
+          a² + b² = c²
+        </span>
+
+        <span className="absolute bottom-10 right-8 font-display text-2xl">
+          π · r²
+        </span>
+
         <div className="absolute -left-24 top-1/2 size-72 rounded-full bg-brand-light/25 blur-3xl" />
         <div className="absolute -right-20 bottom-0 size-80 rounded-full bg-gold/15 blur-3xl" />
       </div>
@@ -24,16 +61,19 @@ export function Hero() {
           <span className="inline-flex items-center gap-2 rounded-full bg-gold px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-gold-foreground">
             <Sparkles className="size-4" /> Academia {SITE.name}
           </span>
+
           <h1 className="mt-5 text-4xl leading-[1.1] text-navy-foreground sm:text-5xl lg:text-6xl">
-            Tu esfuerzo de hoy{" "}
-            <span className="relative inline-block text-gold">construye tu futuro.</span>
+            {seccion?.titulo ?? "Tu esfuerzo de hoy construye tu futuro."}
           </h1>
+
           <p className="mt-4 text-lg font-semibold text-navy-foreground/95 sm:text-xl">
-            Prepárate, aprende y alcanza tus metas con Triunfa Beca.
+            {seccion?.descripcion ?? "Prepárate, aprende y alcanza tus metas con Triunfa Beca."}
           </p>
+
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-navy-foreground/75 sm:text-base lg:mx-0">
-            Formación académica para estudiantes de Inicial, Primaria, Secundaria y Preuniversitario,
-            además de asesoramiento para postulantes a Beca 18.
+            Formación académica para estudiantes de Inicial, Primaria,
+            Secundaria y Preuniversitario, además de asesoramiento para
+            postulantes a Beca 18.
           </p>
 
           <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start">
@@ -43,6 +83,7 @@ export function Hero() {
             >
               Solicitar información
             </button>
+
             <button
               onClick={() => scrollToSection("#matricula")}
               className="rounded-full bg-gold-gradient px-7 py-3.5 text-base font-extrabold text-gold-foreground shadow-gold transition-transform hover:-translate-y-0.5"
@@ -57,9 +98,14 @@ export function Hero() {
               { k: "2", v: "Turnos disponibles" },
               { k: "4", v: "Talleres los sábados" },
             ].map((s) => (
-              <div key={s.v} className="rounded-2xl bg-navy-foreground/10 px-3 py-4 backdrop-blur">
+              <div
+                key={s.v}
+                className="rounded-2xl bg-navy-foreground/10 px-3 py-4 backdrop-blur"
+              >
                 <dt className="font-display text-2xl text-gold">{s.k}</dt>
-                <dd className="mt-1 text-xs font-semibold text-navy-foreground/80">{s.v}</dd>
+                <dd className="mt-1 text-xs font-semibold text-navy-foreground/80">
+                  {s.v}
+                </dd>
               </div>
             ))}
           </dl>
@@ -68,36 +114,47 @@ export function Hero() {
         {/* Collage de fotografías */}
         <div className="relative mx-auto w-full max-w-md lg:max-w-none">
           <div className="relative">
+
+            {/* ORDEN 1 - Imagen principal */}
             <img
-              src={heroMain}
-              alt="Estudiantes de secundaria sonriendo con sus cuadernos"
+              src={srcPrincipal}
+              alt={altPrincipal}
               width={1024}
               height={1280}
               className="w-full rounded-[2rem] border-4 border-navy-foreground/20 object-cover shadow-card"
             />
+
+            {/* ORDEN 2 - Imagen pequeña inferior */}
             <img
-              src={heroKid}
-              alt="Niña estudiando con sus libros"
+              src={srcInferior}
+              alt={altInferior}
               width={768}
               height={768}
               loading="lazy"
               className="absolute -bottom-6 -left-4 hidden w-32 rounded-2xl border-4 border-background object-cover shadow-card sm:block sm:w-40"
             />
+
+            {/* ORDEN 3 - Imagen pequeña superior */}
             <img
-              src={heroGrads}
-              alt="Jóvenes celebrando su ingreso a la universidad"
+              src={srcSuperior}
+              alt={altSuperior}
               width={768}
               height={768}
               loading="lazy"
               className="absolute -right-4 top-8 hidden w-32 rounded-2xl border-4 border-background object-cover shadow-card sm:block sm:w-36"
             />
+
             <div className="absolute -bottom-5 right-4 flex items-center gap-2 rounded-2xl bg-background px-4 py-3 shadow-card">
               <GraduationCap className="size-6 text-crimson" />
+
               <div className="text-left leading-tight">
                 <p className="font-display text-sm text-navy">Beca 18</p>
-                <p className="text-[11px] font-semibold text-muted-foreground">Asesoría para postular</p>
+                <p className="text-[11px] font-semibold text-muted-foreground">
+                  Asesoría para postular
+                </p>
               </div>
             </div>
+
           </div>
         </div>
       </div>

@@ -1,16 +1,26 @@
 import { Info, Moon, Sun } from "lucide-react";
 import { Reveal, SectionHeading } from "./Reveal";
+import { useSecciones } from "@/hooks/useSecciones";
 
 const TURNOS = [
-  { icon: Sun, name: "Turno Mañana", dias: "Lunes a viernes", hora: "8:30 AM - 12:00 PM", accent: "bg-gold-gradient text-gold-foreground" },
+  { icon: Sun, name: "Turno Mañana", dias: "Lunes a viernes", hora: "8:00 AM - 12:00 PM", accent: "bg-gold-gradient text-gold-foreground" },
   { icon: Moon, name: "Turno Tarde", dias: "Lunes a viernes", hora: "3:00 PM - 6:00 PM", accent: "bg-crimson text-crimson-foreground" },
 ];
 
 export function ScheduleSection() {
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("HORARIOS");
+
+  if (isHidden("HORARIOS")) return null;
+
   return (
     <section id="horarios" className="bg-secondary/60 py-20 sm:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Horarios" title="Horarios de atención y clases" />
+        <SectionHeading
+          eyebrow={seccion?.etiqueta ?? "Horarios"}
+          title={seccion?.titulo ?? "Horarios de atención y clases"}
+          subtitle={seccion?.descripcion}
+        />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2">
           {TURNOS.map((t, i) => (

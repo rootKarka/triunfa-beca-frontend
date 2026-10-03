@@ -1,101 +1,89 @@
-import { useState } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ClipboardCheck, GraduationCap, UserRound, Users } from "lucide-react";
-import { NIVELES, SERVICIOS } from "@/config/site";
 import { Reveal, SectionHeading } from "./Reveal";
 import { SelectField, SuccessDialog, TextField } from "./FormControls";
-
 import { matriculaService } from "@/services/matriculaService";
-import { replaceEqualDeep } from "@tanstack/react-query";
-
-const GRADOS = [
-  "3 años",
-  "4 años",
-  "5 años",
-  "1° grado",
-  "2° grado",
-  "3° grado",
-  "4° grado",
-  "5° grado",
-  "6° grado",
-  "1° secundaria",
-  "2° secundaria",
-  "3° secundaria",
-  "4° secundaria",
-  "5° secundaria",
-  "Preuniversitario - Ciclo regular",
-  "Preuniversitario - Beca 18",
-];
-
-const TURNOS = ["Turno Mañana (8:30 AM - 12:00 PM)", "Turno Tarde (3:00 PM - 6:00 PM)"];
+import { useSecciones } from "@/hooks/useSecciones";
+import { useCatalogosForm } from "@/hooks/useCatalogosForm";
 
 const EMPTY = {
-  nombres: "",
-  apPaterno: "",
-  apMaterno: "",
-  dni: "",
-  nacimiento: "",
-  celular: "",
-  correo: "",
-  nivel: "",
-  grado: "",
-  servicio: "",
-  turno: "",
-  apoNombre: "",
-  apoDni: "",
-  apoCelular: "",
-  apoCorreo: "",
+  nombres: "", apPaterno: "", apMaterno: "", dni: "", nacimiento: "",
+  celular: "", correo: "", nivel: "", grado: "", servicio: "", turno: "",
+  apoNombre: "", apoDni: "", apoCelular: "", apoCorreo: "",
 };
 
 type Values = typeof EMPTY;
-type Errors = { [K in keyof Values]?: string | undefined };
+type Errors = Partial<Record<keyof Values, string>>;
 
-const req = (v: string, msg = "Este campo es obligatorio.") => (v.trim() ? undefined : msg);
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const DNI_REGEX = /^\d{8}$/;
+const CELULAR_REGEX = /^\d{9}$/;
 
-function validate(v: Values): Errors {
-  const e: Errors = {};
-  e.nombres = req(v.nombres);
-  e.apPaterno = req(v.apPaterno);
-  e.apMaterno = req(v.apMaterno);
-  e.dni = /^\d{8}$/.test(v.dni.trim()) ? undefined : "El DNI debe tener 8 dígitos.";
-  e.nacimiento = req(v.nacimiento, "Selecciona la fecha de nacimiento.");
-  e.celular = /^\d{9}$/.test(v.celular.trim()) ? undefined : "El celular debe tener 9 dígitos.";
-  e.correo = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.correo.trim()) ? undefined : "Ingresa un correo válido.";
-  e.nivel = req(v.nivel, "Selecciona el nivel educativo.");
-  e.grado = req(v.grado, "Selecciona el grado o modalidad.");
-  e.servicio = req(v.servicio, "Selecciona un servicio.");
-  e.turno = req(v.turno, "Selecciona un turno.");
-  e.apoNombre = req(v.apoNombre);
-  e.apoDni = /^\d{8}$/.test(v.apoDni.trim()) ? undefined : "El DNI debe tener 8 dígitos.";
-  e.apoCelular = /^\d{9}$/.test(v.apoCelular.trim()) ? undefined : "El celular debe tener 9 dígitos.";
-  e.apoCorreo = !v.apoCorreo.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.apoCorreo.trim())
-    ? undefined
-    : "Ingresa un correo válido.";
-  (Object.keys(e) as (keyof Values)[]).forEach((k) => e[k] === undefined && delete e[k]);
-  return e;
+const requerido = (valor: string, mensaje = "Este campo es obligatorio.") =>
+  valor.trim() ? undefined : mensaje;
+
+function validarFormulario(values: Values): Errors {
+  const errors: Errors = {};
+
+  errors.nombres = requerido(values.nombres);
+  errors.apPaterno = requerido(values.apPaterno);
+  errors.apMaterno = requerido(values.apMaterno);
+  errors.nacimiento = requerido(values.nacimiento, "Selecciona la fecha de nacimiento.");
+  errors.nivel = requerido(values.nivel, "Selecciona el nivel educativo.");
+  errors.grado = requerido(values.grado, "Selecciona el grado o modalidad.");
+  errors.servicio = requerido(values.servicio, "Selecciona un servicio.");
+  errors.turno = requerido(values.turno, "Selecciona un turno.");
+  errors.apoNombre = requerido(values.apoNombre);
+
+  if (!DNI_REGEX.test(values.dni.trim()))
+    errors.dni = "El DNI debe tener 8 dígitos.";
+
+  if (!CELULAR_REGEX.test(values.celular.trim()))
+    errors.celular = "El celular debe tener 9 dígitos.";
+
+  if (!EMAIL_REGEX.test(values.correo.trim()))
+    errors.correo = "Ingresa un correo válido.";
+
+  if (!DNI_REGEX.test(values.apoDni.trim()))
+    errors.apoDni = "El DNI debe tener 8 dígitos.";
+
+  if (!CELULAR_REGEX.test(values.apoCelular.trim()))
+    errors.apoCelular = "El celular debe tener 9 dígitos.";
+
+  if (values.apoCorreo.trim() && !EMAIL_REGEX.test(values.apoCorreo.trim()))
+    errors.apoCorreo = "Ingresa un correo válido.";
+
+  Object.keys(errors).forEach((key) => {
+    if (errors[key as keyof Values] === undefined)
+      delete errors[key as keyof Values];
+  });
+
+  return errors;
 }
 
-function Block({
-  icon: Icon,
-  step,
-  title,
-  children,
-}: {
+type BlockProps = {
   icon: typeof UserRound;
   step: string;
   title: string;
-  children: React.ReactNode;
-}) {
+  children: ReactNode;
+};
+
+function Block({ icon: Icon, step, title, children }: BlockProps) {
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-6 shadow-soft sm:p-7">
       <div className="mb-5 flex items-center gap-3">
         <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-brand text-primary-foreground">
           <Icon className="size-5" />
         </span>
+
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-widest text-crimson">Paso {step}</p>
+          <p className="text-xs font-extrabold uppercase tracking-widest text-crimson">
+            Paso {step}
+          </p>
           <h3 className="text-lg text-navy">{title}</h3>
         </div>
       </div>
+
       <div className="grid gap-4 sm:grid-cols-2">{children}</div>
     </div>
   );
@@ -107,23 +95,49 @@ export function EnrollmentForm() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
-  const set = (key: keyof Values) => (e: { target: { value: string } }) => {
-    setValues((v) => ({ ...v, [key]: e.target.value }));
-    setErrors((prev) => ({ ...prev, [key]: undefined }));
-  };
+  const {
+    matriculaNiveles,
+    matriculaGrados,
+    matriculaServicios,
+    matriculaTurnos,
+  } = useCatalogosForm();
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const found = validate(values);
-    setErrors(found);
-    
-    if (Object.keys(found).length > 0) return;
+  const { getSeccion, isHidden } = useSecciones();
+  const seccion = getSeccion("PRE-MATRÍCULA");
 
-    setSending(true);
+  useEffect(() => {
+    setValues((actual) => ({
+      ...actual,
+      nivel: matriculaNiveles.includes(actual.nivel) ? actual.nivel : "",
+      grado: matriculaGrados.includes(actual.grado) ? actual.grado : "",
+      servicio: matriculaServicios.includes(actual.servicio) ? actual.servicio : "",
+      turno: matriculaTurnos.includes(actual.turno) ? actual.turno : "",
+    }));
+  }, [
+    matriculaNiveles,
+    matriculaGrados,
+    matriculaServicios,
+    matriculaTurnos,
+  ]);
+
+  const actualizar = (campo: keyof Values) =>
+    (event: { target: { value: string } }) => {
+      setValues((actual) => ({ ...actual, [campo]: event.target.value }));
+      setErrors((actual) => ({ ...actual, [campo]: undefined }));
+    };
+
+  const enviar = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const errores = validarFormulario(values);
+    setErrors(errores);
+
+    if (Object.keys(errores).length > 0) return;
 
     try {
-      // Mapear todos los datos del frontend al  formato que espera el backend
-      const requestData = {
+      setSending(true);
+
+      await matriculaService.crearSolicitud({
         est_nombres: values.nombres,
         est_apellido_paterno: values.apPaterno,
         est_apellido_materno: values.apMaterno,
@@ -138,78 +152,109 @@ export function EnrollmentForm() {
         apod_nombre_completo: values.apoNombre,
         apod_dni: values.apoDni,
         apod_celular: values.apoCelular,
-        apod_correo: values.apoCorreo
-      };
+        apod_correo: values.apoCorreo,
+      });
 
-      // Enviar al backend real
-      await matriculaService.crearSolicitud(requestData);
-
-      // Si todo sale bien
-      setDone(true);
       setValues(EMPTY);
+      setDone(true);
+    } catch (error) {
+      console.error("Error al enviar solicitud", error);
 
-    } catch (error: any) {
-      console.error('Error al enviar solicitud', error);
-      alert(error.message || 'Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.');
-    }  finally {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Hubo un error al enviar tu solicitud. Intenta nuevamente."
+      );
+    } finally {
       setSending(false);
     }
-
   };
+
+  if (isHidden("PRE-MATRÍCULA")) return null;
 
   return (
     <section id="matricula" className="bg-secondary/60 py-20 sm:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Pre-matrícula"
-          title="Inicia tu matrícula"
-          subtitle="Registra tus datos y nuestro equipo te contactará para confirmar la información y darte los siguientes pasos. No se realiza ningún pago en línea."
+          eyebrow={seccion?.etiqueta ?? "Pre-matrícula"}
+          title={seccion?.titulo ?? "Inicia tu matrícula"}
+          subtitle={
+            seccion?.descripcion ??
+            "Registra tus datos y nuestro equipo te contactará para confirmar la información y darte los siguientes pasos. No se realiza ningún pago en línea."
+          }
         />
 
-        <form onSubmit={onSubmit} noValidate className="mt-12 space-y-6">
+        <form onSubmit={enviar} noValidate className="mt-12 space-y-6">
           <Reveal>
             <Block icon={UserRound} step="1" title="Datos del estudiante">
-              <TextField label="Nombres" required value={values.nombres} onChange={set("nombres")} error={errors.nombres} maxLength={60} />
-              <TextField label="Apellido paterno" required value={values.apPaterno} onChange={set("apPaterno")} error={errors.apPaterno} maxLength={60} />
-              <TextField label="Apellido materno" required value={values.apMaterno} onChange={set("apMaterno")} error={errors.apMaterno} maxLength={60} />
-              <TextField label="DNI" required inputMode="numeric" maxLength={8} value={values.dni} onChange={set("dni")} error={errors.dni} placeholder="12345678" />
-              <TextField label="Fecha de nacimiento" required type="date" value={values.nacimiento} onChange={set("nacimiento")} error={errors.nacimiento} />
-              <TextField label="Celular" required inputMode="numeric" maxLength={9} value={values.celular} onChange={set("celular")} error={errors.celular} placeholder="9XXXXXXXX" />
+              <TextField label="Nombres" required maxLength={60}
+                value={values.nombres} onChange={actualizar("nombres")} error={errors.nombres} />
+
+              <TextField label="Apellido paterno" required maxLength={60}
+                value={values.apPaterno} onChange={actualizar("apPaterno")} error={errors.apPaterno} />
+
+              <TextField label="Apellido materno" required maxLength={60}
+                value={values.apMaterno} onChange={actualizar("apMaterno")} error={errors.apMaterno} />
+
+              <TextField label="DNI" required inputMode="numeric" maxLength={8}
+                value={values.dni} onChange={actualizar("dni")} error={errors.dni} placeholder="12345678" />
+
+              <TextField label="Fecha de nacimiento" required type="date"
+                value={values.nacimiento} onChange={actualizar("nacimiento")} error={errors.nacimiento} />
+
+              <TextField label="Celular" required inputMode="numeric" maxLength={9}
+                value={values.celular} onChange={actualizar("celular")} error={errors.celular} placeholder="9XXXXXXXX" />
+
               <div className="sm:col-span-2">
-                <TextField label="Correo electrónico" required type="email" maxLength={255} value={values.correo} onChange={set("correo")} error={errors.correo} placeholder="estudiante@gmail.com" />
+                <TextField label="Correo electrónico" required type="email" maxLength={255}
+                  value={values.correo} onChange={actualizar("correo")} error={errors.correo}
+                  placeholder="estudiante@gmail.com" />
               </div>
             </Block>
           </Reveal>
 
           <Reveal delay={80}>
             <Block icon={GraduationCap} step="2" title="Información académica">
-              <SelectField label="Nivel educativo" required options={NIVELES} value={values.nivel} onChange={set("nivel")} error={errors.nivel} />
-              <SelectField label="Grado / modalidad" required options={GRADOS} value={values.grado} onChange={set("grado")} error={errors.grado} />
-              <SelectField label="Servicio que desea contratar" required options={SERVICIOS} value={values.servicio} onChange={set("servicio")} error={errors.servicio} />
-              <SelectField label="Turno preferido" required options={TURNOS} value={values.turno} onChange={set("turno")} error={errors.turno} />
+              <SelectField label="Nivel educativo" required options={matriculaNiveles}
+                value={values.nivel} onChange={actualizar("nivel")} error={errors.nivel} />
+
+              <SelectField label="Grado / modalidad" required options={matriculaGrados}
+                value={values.grado} onChange={actualizar("grado")} error={errors.grado} />
+
+              <SelectField label="Servicio que desea contratar" required options={matriculaServicios}
+                value={values.servicio} onChange={actualizar("servicio")} error={errors.servicio} />
+
+              <SelectField label="Turno preferido" required options={matriculaTurnos}
+                value={values.turno} onChange={actualizar("turno")} error={errors.turno} />
             </Block>
           </Reveal>
 
           <Reveal delay={140}>
             <Block icon={Users} step="3" title="Datos del padre o apoderado">
               <div className="sm:col-span-2">
-                <TextField label="Nombre completo" required maxLength={120} value={values.apoNombre} onChange={set("apoNombre")} error={errors.apoNombre} />
+                <TextField label="Nombre completo" required maxLength={120}
+                  value={values.apoNombre} onChange={actualizar("apoNombre")} error={errors.apoNombre} />
               </div>
-              <TextField label="DNI" required inputMode="numeric" maxLength={8} value={values.apoDni} onChange={set("apoDni")} error={errors.apoDni} placeholder="12345678" />
-              <TextField label="Celular" required inputMode="numeric" maxLength={9} value={values.apoCelular} onChange={set("apoCelular")} error={errors.apoCelular} placeholder="9XXXXXXXX" />
+
+              <TextField label="DNI" required inputMode="numeric" maxLength={8}
+                value={values.apoDni} onChange={actualizar("apoDni")} error={errors.apoDni} placeholder="12345678" />
+
+              <TextField label="Celular" required inputMode="numeric" maxLength={9}
+                value={values.apoCelular} onChange={actualizar("apoCelular")}
+                error={errors.apoCelular} placeholder="9XXXXXXXX" />
+
               <div className="sm:col-span-2">
-                <TextField label="Correo electrónico" type="email" maxLength={255} value={values.apoCorreo} onChange={set("apoCorreo")} error={errors.apoCorreo} placeholder="apoderado@gmail.com" />
+                <TextField label="Correo electrónico" type="email" maxLength={255}
+                  value={values.apoCorreo} onChange={actualizar("apoCorreo")}
+                  error={errors.apoCorreo} placeholder="apoderado@gmail.com" />
               </div>
             </Block>
           </Reveal>
 
-          <button
-            type="submit"
-            disabled={sending}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-gold-gradient px-6 py-4 text-base font-extrabold text-gold-foreground shadow-gold transition-transform hover:-translate-y-0.5 disabled:opacity-70"
-          >
+          <button type="submit" disabled={sending}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-gold-gradient px-6 py-4 text-base font-extrabold text-gold-foreground shadow-gold transition-transform hover:-translate-y-0.5 disabled:opacity-70">
             <ClipboardCheck className="size-5" />
-            {sending ? "Enviando..." : "Enviar solicitud de matrícula"}
+            {sending ? "Enviando..." : seccion?.texto_boton ?? "Enviar solicitud de matrícula"}
           </button>
         </form>
       </div>

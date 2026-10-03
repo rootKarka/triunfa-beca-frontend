@@ -1,8 +1,11 @@
 import { Mail, MapPin, Phone } from "lucide-react";
-import logo from "@/assets/logo-triunfa-beca.png";
-import { NAV_LINKS, SITE, scrollToSection } from "@/config/site";
+import logo from "@/assets/logo-emblema1.png";
+import { SITE, scrollToSection } from "@/config/site";
+import { useNavegacion } from "@/hooks/useNavegacion";
 
 export function Footer() {
+  const { links } = useNavegacion();
+
   return (
     <footer className="bg-navy text-navy-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-8">
@@ -16,7 +19,7 @@ export function Footer() {
         <nav>
           <h3 className="text-lg text-gold">Navegación</h3>
           <ul className="mt-4 grid grid-cols-2 gap-2">
-            {NAV_LINKS.map((l) => (
+            {links.map((l) => (
               <li key={l.href}>
                 <button
                   onClick={() => scrollToSection(l.href)}
